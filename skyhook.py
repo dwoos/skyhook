@@ -165,7 +165,7 @@ def hook():
 @click.option('--port', '-p', default=5000, help='server port')
 @click.option('--debug', '-d', is_flag=True, help='run in debug mode')
 @click.option('--secret', '-s', help='application secret key')
-def run(host, port, debug, user, github, secret):
+def run(host, port, debug, secret):
     if debug:
         app.config['DEBUG'] = debug
     if secret:
