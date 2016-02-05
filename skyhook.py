@@ -20,7 +20,7 @@ from slacker import Slacker
 app = flask.Flask(__name__)
 app.config.update(
     SLACK_KEY=None,
-    STAR_FORMAT='[{user[name]}]({user[url]}) starred [{repo[name]}]({repo[url]}) ★ {stars}',
+    STAR_FORMAT='<{user[url]}|{user[name]}> starred <{repo[url]}|{repo[name]}> ★ {stars}',
     REPOS={}
 )
 app.config.from_pyfile('skyhook.cfg', silent=True)
