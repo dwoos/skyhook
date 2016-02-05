@@ -74,7 +74,7 @@ class Worker(threading.Thread):
 
         if event_type == 'watch':
             repo = app.config['REPOS'][payload['repository']['full_name']]
-            star_format = repos.get('STAR_FORMAT', app.config['STAR_FORMAT'])
+            star_format = repo.get('STAR_FORMAT', app.config['STAR_FORMAT'])
             slack_notify_star(
                 repo['channel'],
                 star_format,
