@@ -157,7 +157,7 @@ def hook():
         payload = request.get_json()
         
         repo = payload['repository']['full_name']
-        if repo not in app.config['REPOS'] and payload['repository']['owner']['name'] != app.config['OWNER']:
+        if repo not in app.config['REPOS'] and payload['repository']['owner']['login'] != app.config['OWNER']:
             return flask.jsonify(status='repo not allowed', repo=repo), 403
 
         app.worker.send('watch', payload, app.config['REPOS'].get(repo, default_config(repo)))
@@ -167,7 +167,7 @@ def hook():
         
         repo = payload['repository']['full_name']
 
-        if repo not in app.config['REPOS'] and payload['repository']['owner']['name'] != app.config['OWNER']:
+        if repo not in app.config['REPOS'] and payload['repository']['owner']['login'] != app.config['OWNER']:
             return flask.jsonify(status='repo not allowed', repo=repo), 403
 
         app.worker.send('fork', payload, app.config['REPOS'].get(repo, default_config(repo)))
