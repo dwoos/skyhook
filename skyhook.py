@@ -131,7 +131,7 @@ def app_setup():
         )
 
 def default_config(repo):
-    return '#' + repo.split('/')[-1]
+    return {'channel' : '#' + repo.split('/')[-1]}
 
 @app.route('/', methods=['POST'])
 @app.route('/hook', methods=['POST'])  # Backwards-compatibility.
