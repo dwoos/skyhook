@@ -76,7 +76,7 @@ class Worker(threading.Thread):
             repo = app.config['REPOS'][payload['repository']['full_name']]
             star_format = repos.get('STAR_FORMAT', app.config['STAR_FORMAT'])
             slack_notify_star(
-                app.config['REPOS'][payload['repository']['full_name']],
+                repo['channel'],
                 star_format,
                 user={'name': payload['sender']['login'],
                       'url': payload['sender']['html_url']},
