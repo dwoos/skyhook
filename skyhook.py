@@ -22,6 +22,7 @@ app.config.update(
     SLACK_KEY=None,
     STAR_FORMAT='<{user[url]}|{user[name]}> starred <{repo[url]}|{repo[name]}> ★ {stars}',
     FORK_FORMAT='<{user[url]}|{user[name]}> forked <{repo[url]}|{repo[name]}> :goldfork: {forks}',
+    OWNER=None,
     REPOS={}
 )
 app.config.from_pyfile('skyhook.cfg', silent=True)
@@ -72,12 +73,11 @@ class Worker(threading.Thread):
                     'Worker exception:\n' + traceback.format_exc()
                 )
 
-    def handle(self, event_type, payload):
+    def handle(self, event_type, payload, repo):
         """Notify on watch or fork.
         """
 
         if event_type == 'watch':
-            repo = app.config['REPOS'][payload['repository']['full_name']]
             star_format = repo.get('STAR_FORMAT', app.config['STAR_FORMAT'])
             slack_notify_star(
                 repo['channel'],
@@ -88,7 +88,6 @@ class Worker(threading.Thread):
                       'url': payload['repository']['html_url']},
                 stars=payload['repository']['stargazers_count'])
         elif event_type == 'fork':
-            repo = app.config['REPOS'][payload['repository']['full_name']]
             fork_format = repo.get('FORK_FORMAT', app.config['FORK_FORMAT'])
             slack_notify_fork(
                 repo['channel'],
@@ -131,6 +130,8 @@ def app_setup():
             'Loaded GitHub networks: {}'.format(len(app.github_networks))
         )
 
+def default_config(repo):
+    return '#' + repo.split('/')[-1]
 
 @app.route('/', methods=['POST'])
 @app.route('/hook', methods=['POST'])  # Backwards-compatibility.
@@ -156,21 +157,20 @@ def hook():
         payload = request.get_json()
         
         repo = payload['repository']['full_name']
-
-        if repo not in app.config['REPOS']:
+        if repo not in app.config['REPOS'] and payload['repository']['owner']['name'] != app.config['OWNER']:
             return flask.jsonify(status='repo not allowed', repo=repo), 403
 
-        app.worker.send('watch', payload)
+        app.worker.send('watch', payload, app.config['REPOS'].get(repo, default_config(repo)))
         return flask.jsonify(status='handled'), 202
     elif event_type == 'fork':
         payload = request.get_json()
         
         repo = payload['repository']['full_name']
 
-        if repo not in app.config['REPOS']:
+        if repo not in app.config['REPOS'] and payload['repository']['owner']['name'] != app.config['OWNER']:
             return flask.jsonify(status='repo not allowed', repo=repo), 403
 
-        app.worker.send('fork', payload)
+        app.worker.send('fork', payload, app.config['REPOS'].get(repo, default_config(repo)))
         return flask.jsonify(status='handled'), 202
     else:
         return flask.jsonify(status='unhandled event', event=event_type), 501
