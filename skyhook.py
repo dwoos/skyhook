@@ -21,6 +21,7 @@ app = flask.Flask(__name__)
 app.config.update(
     SLACK_KEY=None,
     STAR_FORMAT='<{user[url]}|{user[name]}> starred <{repo[url]}|{repo[name]}> ★ {stars}',
+    FORK_FORMAT='<{user[url]}|{user[name]}> forked <{repo[url]}|{repo[name]}> :goldfork: {forks}',
     REPOS={}
 )
 app.config.from_pyfile('skyhook.cfg', silent=True)
@@ -49,6 +50,9 @@ def random_string(length=20, chars=(string.ascii_letters + string.digits)):
 def slack_notify_star(channel, star_format, **kwargs):
     app.slack.chat.post_message(channel, star_format.format(**kwargs))
 
+def slack_notify_fork(channel, fork_format, **kwargs):
+    app.slack.chat.post_message(channel, fork_format.format(**kwargs))
+    
 class Worker(threading.Thread):
     """Thread used for notifying to slack asynchronously
     """
@@ -83,6 +87,17 @@ class Worker(threading.Thread):
                 repo={'name': payload['repository']['full_name'],
                       'url': payload['repository']['html_url']},
                 stars=payload['repository']['stargazers_count'])
+        elif event_type == 'fork':
+            repo = app.config['REPOS'][payload['repository']['full_name']]
+            fork_format = repo.get('FORK_FORMAT', app.config['FORK_FORMAT'])
+            slack_notify_fork(
+                repo['channel'],
+                star_format,
+                user={'name': payload['sender']['login'],
+                      'url': payload['sender']['html_url']},
+                repo={'name': payload['repository']['full_name'],
+                      'url': payload['repository']['html_url']},
+                forks=payload['repository']['forks'])
 
     def send(self, *args):
         """Add a job to the queue.
