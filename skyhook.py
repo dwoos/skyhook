@@ -92,7 +92,7 @@ class Worker(threading.Thread):
             fork_format = repo.get('FORK_FORMAT', app.config['FORK_FORMAT'])
             slack_notify_fork(
                 repo['channel'],
-                star_format,
+                fork_format,
                 user={'name': payload['sender']['login'],
                       'url': payload['sender']['html_url']},
                 repo={'name': payload['repository']['full_name'],
