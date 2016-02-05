@@ -47,7 +47,7 @@ def random_string(length=20, chars=(string.ascii_letters + string.digits)):
 
 
 def slack_notify_star(channel, star_format, **kwargs):
-    app.slack.post_message(channel, star_format.format(**kwargs))
+    app.slack.chat.post_message(channel, star_format.format(**kwargs))
 
 class Worker(threading.Thread):
     """Thread used for notifying to slack asynchronously
